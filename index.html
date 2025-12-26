@@ -1,25 +1,25 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tetris for Sister 💙</title>
+    <meta charset="UTF-8" />
+    <title>Tetris</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="game">
-    <canvas id="board"></canvas>
-    <div id="side">
-        <div class="item">Score: <span id="score">0</span></div>
-        <div class="item">Next:</div>
-        <canvas id="next"></canvas>
-        <button id="pause">⏸️ Pause</button>
+
+<div class="game-wrapper">
+    <canvas id="board" width="320" height="640"></canvas>
+
+    <div class="side">
+        <h3>Next:</h3>
+        <canvas id="next" width="128" height="128"></canvas>
+        <h3 id="score">Score: 0</h3>
     </div>
 </div>
 
-<div id="gameOver" class="hidden">
-    <h2>Game Over 💔</h2>
-    <button onclick="resetGame()">Try Again</button>
+<div class="controls">
+    <button id="pauseBtn">⏸ PAUSE</button>
+    <button id="restartBtn">🔄 TRY AGAIN</button>
 </div>
 
 <script src="script.js"></script>
