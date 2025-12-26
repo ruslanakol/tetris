@@ -34,7 +34,14 @@ const colors = {
 function randomPiece(){
     const keys = Object.keys(shapes);
     const key = keys[Math.floor(Math.random()*keys.length)];
-    return {shape: shapes[key], x:3, y:0, color:colors[key]};
+    const shape = shapes[key];
+
+    return {
+        shape,
+        color: colors[key],
+        x: Math.floor((COLS - shape[0].length) / 2), // центрування!
+        y: -1 // починаємо трохи вище поля, щоб не було колізії
+    };
 }
 
 let current = randomPiece();
@@ -108,17 +115,24 @@ function animateBreak(row){
 
 function drop(){
     if(paused) return;
+
     current.y++;
     if(collides()){
         current.y--;
+
+        // Якщо фігура навіть не зайшла в поле → реальний Game Over
+        if(current.y < 1){
+            return gameOver();
+        }
+
         merge();
         clearLines();
         current = next;
         next = randomPiece();
         drawNext();
-        if(collides()) return gameOver();
     }
 }
+
 
 function drawNext(){
     nextCtx.fillStyle="#000";
