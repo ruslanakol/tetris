@@ -2,37 +2,26 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cute Tetris ✨</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris for Sister 💙</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="game-container">
-    <div class="stats">
-        <h1>Tetris ✨</h1>
-        <p>Рахунок: <span id="score">0</span></p>
-    </div>
-
-    <div class="canvas-wrapper">
-        <canvas id="tetris" width="240" height="400"></canvas>
-        <div id="game-over" class="overlay hidden">
-            <h2>Ой! Програш 🎀</h2>
-            <button onclick="resetGame()">Спробувати ще</button>
-        </div>
-        <div id="pause-screen" class="overlay hidden">
-            <h2>Пауза 🌸</h2>
-            <button onclick="togglePause()">Продовжити</button>
-        </div>
-    </div>
-
-    <div class="mobile-controls">
-        <button class="btn" id="left">◀</button>
-        <button class="btn" id="rotate">↻</button>
-        <button class="btn" id="right">▶</button>
-        <button class="btn" id="down">▼</button>
-        <button class="btn pause-btn" id="pause">⏸</button>
+<div id="game">
+    <canvas id="board"></canvas>
+    <div id="side">
+        <div class="item">Score: <span id="score">0</span></div>
+        <div class="item">Next:</div>
+        <canvas id="next"></canvas>
+        <button id="pause">⏸️ Pause</button>
     </div>
 </div>
+
+<div id="gameOver" class="hidden">
+    <h2>Game Over 💔</h2>
+    <button onclick="resetGame()">Try Again</button>
+</div>
+
 <script src="script.js"></script>
 </body>
 </html>
