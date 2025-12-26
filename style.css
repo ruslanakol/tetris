@@ -1,34 +1,59 @@
+/* Додаємо до попередніх стилів або замінюємо */
 body {
-    background-color: #fff0f5; /* Ніжно-рожевий фон */
+    touch-action: manipulation; /* Забороняє зум при натисканні кнопок */
+    overflow: hidden;
+}
+
+.canvas-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255, 255, 255, 0.8);
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #ff85a2;
-}
-
-.game-container {
-    text-align: center;
-    background: white;
-    padding: 20px;
-    border-radius: 25px;
-    box-shadow: 0 10px 30px rgba(255, 182, 193, 0.5);
-}
-
-canvas {
-    border: 5px solid #ffb6c1;
     border-radius: 10px;
-    background-color: #fafafa;
+    z-index: 10;
 }
 
-h1 { margin: 0 0 10px 0; }
+.hidden { display: none !important; }
 
-.stats { font-size: 1.2rem; font-weight: bold; }
+.mobile-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+}
 
-.controls {
-    margin-top: 10px;
-    font-size: 0.8rem;
-    color: #ffb6c1;
+.btn {
+    background: #ffb6c1;
+    border: none;
+    color: white;
+    padding: 15px;
+    border-radius: 15px;
+    font-size: 1.2rem;
+    box-shadow: 0 4px #ff85a2;
+}
+
+.btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px #ff85a2;
+}
+
+.pause-btn { background: #add8e6; box-shadow: 0 4px #87ceeb; grid-column: span 3; }
+
+button {
+    cursor: pointer;
+    font-family: inherit;
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: none;
+    background: #ff85a2;
+    color: white;
+    font-weight: bold;
 }
