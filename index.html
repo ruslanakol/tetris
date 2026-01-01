@@ -3,21 +3,37 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tetris fpr Lerochka☺</title>
+    <title>Tetris☺</title>
     <style>
-        body { margin:0; background:#111; color:#fff; font-family:sans-serif; display:flex; flex-direction:column; align-items:center; }
-        #board { background:#222; touch-action:none; }
+        body { margin:0; background:#FCC5CE; color:#222; font-family:sans-serif; display:flex; flex-direction:column; align-items:center; }
+        #board { background:#222; touch-action:none; transition: 0.1s; }
         #scoreBox{ margin:10px; font-size:20px; }
+        #message {
+            font-size: 20px;
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            color: #F7C8E0;
+        }
+
+        .flash {
+            animation: flash 0.3s alternate 3;
+        }
+        @keyframes flash {
+            from { opacity: 1; }
+            to { opacity: 0.2; }
+        }
     </style>
 </head>
 <body>
 
-<h2>Tetris fpr Lerochka☺</h2>
+<h2>Tetris for Lerochka☺</h2>
 <div id="scoreBox">
     Score: <span id="score">0</span> | Best: <span id="best">0</span>
 </div>
 
 <canvas id="board" width="240" height="480"></canvas>
+<p id="message" style="height:30px;margin:10px;font-size:18px;"></p>
 
 <script>
     /* ========= BASIC SETUP ========= */
@@ -25,6 +41,8 @@
     const ctx = canvas.getContext("2d");
     const scoreEl = document.getElementById("score");
     const bestEl = document.getElementById("best");
+    const messageEl = document.getElementById("message");
+
 
     const COLS = 10, ROWS = 20, SIZE = 24;
     let score = 0;
@@ -35,6 +53,8 @@
     bestEl.textContent = best;
 
     /* ========= PIECES ========= */
+    const phrases = ["Так тримати! 💛","Увау 🤩","Супер! 🔥","Круто! 😍","Пишаюсь тобою! 🌸"];
+
     const pieces = [
         {s:[[1,1,1],[0,1,0]], c:"#F5768D"}, // T
         {s:[[1,1],[1,1]], c:"#99C2FF"},     // O
@@ -86,10 +106,33 @@
     }
 
     function clearLines(){
-        board = board.filter(r => !r.every(c=>c));
-        while(board.length < ROWS) board.unshift(Array(COLS).fill(0));
-        score += 100;
-        scoreEl.textContent = score;
+        let lines = [];
+        for(let r=0; r<ROWS; r++){
+            if(board[r].every(c=>c)){
+                lines.push(r);
+            }
+        }
+        if(lines.length){
+            // анімація: моргнути
+            lines.forEach(r=>{
+                board[r] = board[r].map(()=> "#fff");
+            });
+            drawBoard();
+
+            setTimeout(()=>{
+                board = board.filter(r => !r.every(c=>c));
+                while(board.length < ROWS) board.unshift(Array(COLS).fill(0));
+                score += lines.length * 100;
+                scoreEl.textContent = score;
+
+                // показати фразу
+                const phrase = phrases[Math.floor(Math.random()*phrases.length)];
+                messageEl.textContent = phrase;
+                setTimeout(()=> messageEl.textContent = "", 1200);
+
+                drawBoard();
+            }, 200);
+        }
     }
 
     function rotate(){
@@ -125,6 +168,7 @@
 
     canvas.addEventListener("touchend", e=>{
         if(gameOver) return;
+
         let ex = e.changedTouches[0].clientX;
         let ey = e.changedTouches[0].clientY;
         let dx = ex - sx, dy = ey - sy;
@@ -144,8 +188,9 @@
             dropStep();
         }
 
-        drawBoard();
+        setTimeout(drawBoard, 50); // ✨ плавність
     });
+
 
     drawBoard();
 </script>
