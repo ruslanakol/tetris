@@ -5,165 +5,149 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tetris Mobile</title>
     <style>
-        body { display:flex; flex-direction:column; align-items:center; margin:0; font-family:sans-serif; background:#111; color:#fff; }
+        body { margin:0; background:#111; color:#fff; font-family:sans-serif; display:flex; flex-direction:column; align-items:center; }
         #board { background:#222; touch-action:none; }
-        #scoreBox{margin:10px;font-size:20px;}
+        #scoreBox{ margin:10px; font-size:20px; }
     </style>
 </head>
 <body>
+
 <h2>Mobile Tetris</h2>
 <div id="scoreBox">
     Score: <span id="score">0</span> | Best: <span id="best">0</span>
 </div>
+
 <canvas id="board" width="240" height="480"></canvas>
 
 <script>
+    /* ========= BASIC SETUP ========= */
     const canvas = document.getElementById("board");
     const ctx = canvas.getContext("2d");
     const scoreEl = document.getElementById("score");
     const bestEl = document.getElementById("best");
+
+    const COLS = 10, ROWS = 20, SIZE = 24;
+    let score = 0;
+    let board = Array.from({length:ROWS},()=>Array(COLS).fill(0));
+    let gameOver = false;
+
     let best = localStorage.getItem("bestScore") || 0;
     bestEl.textContent = best;
 
-    const COLS = 10, ROWS = 20, SIZE = 24;
-    let board = Array.from({length:ROWS},()=>Array(COLS).fill(0));
-    let score = 0, gameOver = false;
-
+    /* ========= PIECES ========= */
     const pieces = [
-        {shape:[[1,1,1],[0,1,0]], color:"#ff00ff"}, // T
-        {shape:[[1,1],[1,1]], color:"#ffff00"},     // O
-        {shape:[[1,1,1,1]], color:"#00ffff"},       // I
-        {shape:[[1,1,0],[0,1,1]], color:"#00ff00"}, // S
-        {shape:[[0,1,1],[1,1,0]], color:"#ff0000"}, // Z
-        {shape:[[1,1,1],[1,0,0]], color:"#ff8800"}, // L
-        {shape:[[1,1,1],[0,0,1]], color:"#0000ff"}  // J
+        {s:[[1,1,1],[0,1,0]], c:"#ff00ff"}, // T
+        {s:[[1,1],[1,1]], c:"#ffff00"},     // O
+        {s:[[1,1,1,1]], c:"#00ffff"},       // I
+        {s:[[1,1,0],[0,1,1]], c:"#00ff00"}, // S
+        {s:[[0,1,1],[1,1,0]], c:"#ff0000"}, // Z
+        {s:[[1,1,1],[1,0,0]], c:"#ff8800"}, // L
+        {s:[[1,1,1],[0,0,1]], c:"#0000ff"}  // J
     ];
 
-    function randomPiece(){
+    function newPiece(){
         const p = pieces[Math.floor(Math.random()*pieces.length)];
-        return {shape:p.shape.map(r=>[...r]), x:3, y:0, color:p.color};
+        return { shape:p.s.map(r=>[...r]), x:3, y:0, color:p.c };
+    }
+
+    let piece = newPiece();
+
+    /* ========= DRAWING ========= */
+    function drawCell(x,y,color){
+        ctx.fillStyle = color;
+        ctx.fillRect(x*SIZE,y*SIZE,SIZE-1,SIZE-1);
     }
 
     function drawBoard(){
         ctx.clearRect(0,0,canvas.width,canvas.height);
         for(let r=0;r<ROWS;r++){
             for(let c=0;c<COLS;c++){
-                if(board[r][c]) draw(c,r,board[r][c]);
+                if(board[r][c]) drawCell(c,r,board[r][c]);
             }
         }
-
         piece.shape.forEach((row, y)=>{
-            row.forEach((value,x)=>{
-                if(value) draw(piece.x + x, piece.y + y, "#f0f");
+            row.forEach((v,x)=>{
+                if(v) drawCell(piece.x + x, piece.y + y, piece.color);
             });
         });
     }
 
-    function draw(x,y,color){
-        ctx.fillStyle = color;
-        ctx.fillRect(x*SIZE,y*SIZE,SIZE-1,SIZE-1);
-    }
-
+    /* ========= GAME LOGIC ========= */
     function collide(px,py,shape){
-        return shape.some((row,y)=> row.some((value,x)=>
-            value && (py+y>=ROWS || px+x<0 || px+x>=COLS || board[py+y][px+x])
+        return shape.some((row,y)=>row.some((v,x)=>
+            v && (py+y>=ROWS || px+x<0 || px+x>=COLS || board[py+y][px+x])
         ));
     }
 
     function merge(){
         piece.shape.forEach((row,y)=>row.forEach((v,x)=>{
-            if(v) board[piece.y+y][piece.x+x]=piece.color;
+            if(v) board[piece.y+y][piece.x+x] = piece.color;
         }));
     }
 
     function clearLines(){
-        let cleared = 0;
-        board = board.filter(row => !row.every(v=>v));
-        const add = ROWS - board.length;
-        while(board.length<ROWS) board.unshift(Array(COLS).fill(0));
-        score += add*100;
+        board = board.filter(r => !r.every(c=>c));
+        while(board.length < ROWS) board.unshift(Array(COLS).fill(0));
+        score += 100;
         scoreEl.textContent = score;
     }
 
-    function drop(){
-        if(!gameOver){
-            if(collide(piece.x,piece.y+1,piece.shape)){
-                merge(); clearLines();
-                piece = randomPiece();
-                if(collide(piece.x,piece.y,piece.shape)){
-                    gameOver = true; alert("Game Over!");
-                    if(score > best){ localStorage.setItem("bestScore",score); }
-                    location.reload();
-                }
-            }else piece.y++;
-            drawBoard();
-        }
-    }
-
-    setInterval(drop, 500);
-
-    // ---------- TOUCH / SWIPE ----------
-    let startX=0,startY=0;
-    canvas.addEventListener("touchstart",(e)=>{
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
-    });
-    canvas.addEventListener("touchend",(e)=>{
-        if(gameOver) return;
-        let endX=e.changedTouches[0].clientX;
-        let endY=e.changedTouches[0].clientY;
-        let dx=endX-startX, dy=endY-startY;
-
-        if(Math.abs(dx)>Math.abs(dy)){
-            if(dx>40 && !collide(piece.x+1,piece.y,piece.shape)) piece.x++;
-            if(dx<-40 && !collide(piece.x-1,piece.y,piece.shape)) piece.x--;
-        }else{
-            if(dy>40){ // свайп вниз → донизу
-                while(!collide(piece.x,piece.y+1,piece.shape)) piece.y++;
-                drop();
-            }
-        }
-        drawBoard();
-    });
     function rotate(){
-        const rotated = piece.shape[0].map((_,i)=>piece.shape.map(r=>r[i]).reverse());
-        if(!collide(piece.x,piece.y,rotated)){
-            piece.shape = rotated;
-            drawBoard();
-        }
+        const r = piece.shape[0].map((_,i)=>piece.shape.map(r=>r[i]).reverse());
+        if(!collide(piece.x,piece.y,r)) piece.shape = r;
     }
 
-    // ТАП → ПОВОРОТ
-    canvas.addEventListener("touchstart",(e)=>{
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
+    function dropStep(){
+        if(collide(piece.x,piece.y+1,piece.shape)){
+            merge(); clearLines();
+            piece = newPiece();
+            if(collide(piece.x,piece.y,piece.shape)){
+                gameOver = true;
+                if(score > best) localStorage.setItem("bestScore",score);
+                alert("Game Over!");
+                location.reload();
+            }
+        } else {
+            piece.y++;
+        }
+        drawBoard();
+    }
+
+    setInterval(()=>{ if(!gameOver) dropStep(); }, 500);
+
+    /* ========= TOUCH CONTROLS ========= */
+    let sx=0, sy=0;
+
+    canvas.addEventListener("touchstart", e=>{
+        sx = e.touches[0].clientX;
+        sy = e.touches[0].clientY;
     });
 
-    canvas.addEventListener("touchend",(e)=>{
+    canvas.addEventListener("touchend", e=>{
         if(gameOver) return;
-        let endX=e.changedTouches[0].clientX;
-        let endY=e.changedTouches[0].clientY;
-        let dx=endX-startX, dy=endY-startY;
+        let ex = e.changedTouches[0].clientX;
+        let ey = e.changedTouches[0].clientY;
+        let dx = ex - sx, dy = ey - sy;
 
-        // CLICK / TAP (менше 10px руху)
+        // TAP → ROTATE
         if(Math.abs(dx)<10 && Math.abs(dy)<10){
-            rotate();
-            return;
+            rotate(); drawBoard(); return;
         }
 
-        // свайпи в сторони та вниз як було:
+        // SWIPES
         if(Math.abs(dx)>Math.abs(dy)){
             if(dx>40 && !collide(piece.x+1,piece.y,piece.shape)) piece.x++;
             if(dx<-40 && !collide(piece.x-1,piece.y,piece.shape)) piece.x--;
-        }else{
-            if(dy>40){
-                while(!collide(piece.x,piece.y+1,piece.shape)) piece.y++;
-                drop();
-            }
+        } else if(dy>40){
+            // hard drop
+            while(!collide(piece.x,piece.y+1,piece.shape)) piece.y++;
+            dropStep();
         }
+
         drawBoard();
     });
 
+    drawBoard();
 </script>
 </body>
 </html>
